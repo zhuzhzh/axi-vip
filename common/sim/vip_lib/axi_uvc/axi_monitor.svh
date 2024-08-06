@@ -200,6 +200,7 @@ end
 
       forever begin
          @(posedge cfg.axi_vi.cb.rvalid && cfg.axi_vi.cb.rready);
+         `uvm_info(tID, $sformatf("Captured r, bid = %0h", cfg.axi_vi.cb.bid), UVM_MEDIUM)
          for (int i=0; i<trans_rd_q.size(); i++) begin
             if (cfg.axi_vi.cb.rid == trans_rd_q[i].id) begin
                match   = 1;
@@ -228,6 +229,8 @@ end
          for (int j=0; j<=trans_rd.len; j++) begin
             if (trans_rd.rresp[j] != 0)
                `uvm_error(tID, $sformatf("trans_rd.rresp[%0d] != 0, trans_rd.id = %0h, rresp = %0b", j, trans_rd.id, trans_rd.rresp[j]))
+            else
+                `uvm_info(tID, $sformatf("Sending r: match = %0d, %s", match, trans_rd.convert2string()), UVM_MEDIUM)
          end
 
          $cast(trans_rd_clone, trans_rd.clone());

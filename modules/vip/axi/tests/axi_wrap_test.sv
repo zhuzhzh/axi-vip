@@ -28,7 +28,6 @@ class axi_wrap_test extends axi_base_test;
       super.run_phase(phase);
 
       uvm_test_done.drop_objection(this);
-      uvm_test_done.set_drain_time(this, 1);
    endtask
 
    function void configure_axi_env();

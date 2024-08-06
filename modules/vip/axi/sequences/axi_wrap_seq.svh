@@ -73,6 +73,7 @@ class axi_wrap_seq extends axi_base_seq;
 
       foreach (axi_txn_q[i]) begin
          axi_txn_q[i].ttype = AXI_RD;
+         `uvm_info(tID, $sformatf("AXI rd_txn[%0d]: %s", i, axi_txn_q[i].convert2string()), UVM_MEDIUM)
          assert($cast(axi_txn_clone, axi_txn_q[i].clone()));
          start_item(axi_txn_clone);
          finish_item(axi_txn_clone);

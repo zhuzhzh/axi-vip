@@ -54,6 +54,8 @@ class axi_driver#(parameter ID_WIDTH   = 16,
          b_rdy();
          ar_rdy();
          r_rdy();
+         monitor_b_state();
+         monitor_r_state();
          get_item();
          get_rsp_item();
       join_none
@@ -209,9 +211,32 @@ class axi_driver#(parameter ID_WIDTH   = 16,
       end
    endtask
 
+   task monitor_b_state();
+      if (cfg.master) begin
+         forever begin
+            @(posedge cfg.axi_vi.clk iff
+               cfg.axi_vi.rst_n && cfg.axi_vi.cb.bready && cfg.axi_vi.cb.bvalid);
+            if (cfg.axi_vi.rst_n)
+               uvm_test_done.drop_objection(this);
+         end
+      end
+   endtask
+
+   task monitor_r_state();
+      if (cfg.master) begin
+         forever begin
+            @(posedge cfg.axi_vi.clk iff
+               cfg.axi_vi.rst_n && cfg.axi_vi.cb.rready && cfg.axi_vi.cb.rvalid);
+            if (cfg.axi_vi.rst_n)
+               uvm_test_done.drop_objection(this);
+         end
+      end
+   endtask
+
    task get_item();
       forever begin
          seq_item_port.get_next_item(req);
+         uvm_test_done.raise_objection(this);
          case (req.ttype)
             AXI_WR: begin
                        drv_aw();
@@ -226,10 +251,12 @@ class axi_driver#(parameter ID_WIDTH   = 16,
    task get_rsp_item();
       forever begin
          analysis_fifo.get(rsp);
+         uvm_test_done.raise_objection(this);
          case (rsp.ttype)
             AXI_WR: drv_b();
             AXI_RD: drv_r();
          endcase
+         uvm_test_done.drop_objection(this);
       end
    endtask
 
@@ -300,6 +327,7 @@ class axi_driver#(parameter ID_WIDTH   = 16,
    endtask
 
    task drv_r();
+      `uvm_info(tID, $sformatf("Drive r, rsp: %s", rsp.convert2string()), UVM_MEDIUM)
       cfg.axi_vi.cb.rid    <= rsp.id;
       cfg.axi_vi.cb.rvalid <= 1'b1;
       for (int i=0; i<rsp.len+1; i++) begin
